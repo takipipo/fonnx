@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fonnx/tokenizers/wordpiece_tokenizer.dart';
+import 'package:fonnx/models/minilml6v2/mini_lm_l6_v2.dart';
 import 'package:ml_linalg/linalg.dart';
 
 import 'package:fonnx/models/minilml6v2/mini_lm_l6_v2_native.dart';
@@ -32,7 +32,7 @@ void main() {
 
   test('Performance test', () async {
     final List<String> randomStrings =
-        WordpieceTokenizer.bert().tokenize(data).map((e) => e.text).toList();
+        MiniLmL6V2.tokenizer.tokenize(data).map((e) => e.text).toList();
     const count = 100;
     List<Future> futures = [];
     final sw = Stopwatch()..start();
@@ -56,9 +56,9 @@ void main() {
   });
 
   test('Similarity: weather', () async {
-    final vSF =
-        (await miniLmL6V2.truncateAndGetEmbeddingForString('shipping forecast'))
-            .embedding;
+    final vRandom = await vec(
+        'jabberwocky awaits: lets not be late lest the lillies bloom in the garden of eden');
+    final vSF = await vec('shipping forecast');
     final vAnswer =
         await vec('WeatherChannel Spain the weather is sunny and warm');
     final vWF = await vec('weather forecast');
@@ -66,12 +66,14 @@ void main() {
     final vWFInSpain = await vec('weather forecast in Spain');
     final vBuffaloWeatherForecast = await vec('buffalo weather forecast');
 
+    final sRandomToAnswer = vRandom.similarity(vAnswer);
     final sSFToAnswer = vSF.similarity(vAnswer);
     final sWFToAnswer = vWF.similarity(vAnswer);
     final sSpainWFToAnswer = vSpainWF.similarity(vAnswer);
     final sWFInSpainToAnswer = vWFInSpain.similarity(vAnswer);
     final sWFInBuffaloToAnswer = vBuffaloWeatherForecast.similarity(vAnswer);
 
+    expect(sRandomToAnswer, closeTo(0.055, 0.001));
     expect(sSFToAnswer, closeTo(0.189, 0.001));
     expect(sWFInBuffaloToAnswer, closeTo(0.278, 0.001));
     expect(sWFToAnswer, closeTo(0.470, 0.001));
@@ -85,6 +87,13 @@ void main() {
     expect(vQuery.similarity(vAnswer), closeTo(0.386, 0.001));
     final vRandom = await vec('Rain in Spain falls mainly on the plain');
     expect(vQuery.similarity(vRandom), closeTo(0.008, 0.001));
+  });
+
+  test('Similarity: London', () async {
+    final vQuery = await vec('How big is London');
+    final vAnswer =
+        await vec('UK capital has 9,787,426 inhabitants at the 2011 census');
+    expect(vQuery.similarity(vAnswer), closeTo(0.400, 0.001));
   });
 }
 

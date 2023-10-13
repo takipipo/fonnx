@@ -8,7 +8,6 @@ import 'package:fonnx/fonnx.dart';
 import 'package:fonnx/models/minilml6v2/mini_lm_l6_v2.dart';
 import 'package:fonnx/onnx/ort_ffi_bindings.dart' hide calloc, free;
 import 'package:fonnx/tokenizers/embedding.dart';
-import 'package:fonnx/tokenizers/wordpiece_tokenizer.dart';
 import 'package:ml_linalg/linalg.dart';
 
 MiniLmL6V2 getMiniLmL6V2(String path) => MiniLmL6V2Native(path);
@@ -18,12 +17,10 @@ class MiniLmL6V2Native implements MiniLmL6V2 {
   MiniLmL6V2Native(this.modelPath);
   OrtSessionObjects? _sessionObjects;
   Fonnx? _fonnx;
-  WordpieceTokenizer? _wordpieceTokenizer;
 
   @override
   Future<List<TextAndVector>> embed(String text) async {
-    _wordpieceTokenizer ??= WordpieceTokenizer.bert();
-    final textAndTokens = _wordpieceTokenizer!.tokenize(text);
+    final textAndTokens = MiniLmL6V2.tokenizer.tokenize(text);
     final allTextAndEmbeddings = <TextAndVector>[];
     for (var i = 0; i < textAndTokens.length; i++) {
       final textAndToken = textAndTokens[i];
@@ -44,8 +41,7 @@ class MiniLmL6V2Native implements MiniLmL6V2 {
 
   Future<TextAndVector> truncateAndGetEmbeddingForString(
       String string) async {
-    _wordpieceTokenizer ??= WordpieceTokenizer.bert();
-    final textAndTokens = _wordpieceTokenizer!.tokenize(string);
+    final textAndTokens = MiniLmL6V2.tokenizer.tokenize(string);
     final tokens = textAndTokens[0].tokens;
     final embeddings = await _truncateAndGetEmbeddingForTokens(tokens);
     final vector =

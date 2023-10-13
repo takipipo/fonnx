@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:fonnx/tokenizers/embedding.dart';
-import 'package:fonnx/tokenizers/wordpiece_tokenizer.dart';
 import 'package:js/js_util.dart';
 
 import 'package:js/js.dart';
@@ -25,13 +24,12 @@ external Promise<List<List<double>>> sbertJs(
 
 class MiniLmL6V2Web implements MiniLmL6V2 {
   final String modelPath;
-  final tokenizer = WordpieceTokenizer.bert();
 
   MiniLmL6V2Web(this.modelPath);
 
   @override
   Future<List<TextAndVector>> embed(String text) async {
-    final allTextAndTokens = tokenizer.tokenize(text);
+    final allTextAndTokens = MiniLmL6V2.tokenizer.tokenize(text);
     final allTextAndEmbeddings = <TextAndVector>[];
     for (var i = 0; i < allTextAndTokens.length; i++) {
       final textAndTokens = allTextAndTokens[i];
@@ -41,12 +39,10 @@ class MiniLmL6V2Web implements MiniLmL6V2 {
       if (jsObject == null) {
         throw Exception('Embeddings returned from JS code are null');
       }
-      // final jsList = (jsObject as List<num>);
       final jsList = (jsObject as List<dynamic>);
       final vector = Vector.fromList(Float32List.fromList(jsList.cast()),
               dtype: DType.float32)
           .normalize();
-      // final vector = Vector.fromList(jsList, dtype: DType.float32).normalize();
       allTextAndEmbeddings.add(TextAndVector(text: text, embedding: vector));
     }
 
@@ -61,11 +57,12 @@ class MiniLmL6V2Web implements MiniLmL6V2 {
     if (jsObject == null) {
       throw Exception('Embeddings returned from JS code are null');
     }
-    // final jsList = (jsObject as List<num>);
-    final jsList = (jsObject as List<dynamic>);
-    final vector = Vector.fromList(Float32List.fromList(jsList.cast()),
-            dtype: DType.float32)
-        .normalize();
+
+    final jsList = jsObject as List<dynamic>;
+    final vector = Vector.fromList(
+      Float32List.fromList(jsList.cast()),
+      dtype: DType.float32,
+    ).normalize();
     return vector;
   }
 }
