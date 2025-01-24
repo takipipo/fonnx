@@ -8,6 +8,7 @@ import 'package:fonnx_example/tts_demo_widget.dart';
 import 'package:fonnx_example/whisper_widget.dart';
 import 'package:libmonet/libmonet.dart';
 import 'package:libmonet/theming/monet_theme_data.dart';
+import 'package:fonnx_example/emotion2vec_widget.dart';
 
 void main() {
   runApp(const MyApp());
@@ -84,6 +85,8 @@ class _MyAppState extends State<MyApp> {
                     PyannoteWidget(),
                     SizedBox(height: 16),
                     WhisperWidget(),
+                    SizedBox(height: 16),
+                    Emotion2VecWidget(),
                     SizedBox(height: 16),
                   ],
                 ),
