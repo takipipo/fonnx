@@ -64,4 +64,11 @@ abstract class FonnxPlatform extends PlatformInterface {
   }) async {
     throw UnimplementedError('sileroVad() has not been implemented.');
   }
+
+  Future<Float32List?> emotion2vec({
+    required String modelPath,
+    required List<int> audioBytes,
+  }) {
+    throw UnimplementedError('emotion2vec() has not been implemented.');
+  }
 }

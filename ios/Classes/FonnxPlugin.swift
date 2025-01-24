@@ -13,6 +13,8 @@ public class FonnxPlugin: NSObject, FlutterPlugin {
   private var cachedSileroVad: OrtVad?
   private var cachedPyannoteModelPath: String?
   private var cachedPyannote: OrtPyannote?
+  private var cachedEmotion2VecModelPath: String?
+  private var cachedEmotion2Vec: OrtEmotion2Vec?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "fonnx", binaryMessenger: registrar.messenger())
@@ -34,11 +36,29 @@ public class FonnxPlugin: NSObject, FlutterPlugin {
       doSileroVad(call, result: result)
     case "pyannote":
       doPyannote(call, result: result)
+    case "emotion2vec":
+      doEmotion2Vec(call, result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
   }
+  public func doEmotion2Vec(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    let path = (call.arguments as! [Any])[0] as! String
+    let fileFloats = (call.arguments as! [Any])[1] as! [Float]
+    
+    if cachedEmotion2VecModelPath != path {
+      cachedEmotion2Vec = OrtEmotion2Vec(modelPath: path)
+      cachedEmotion2VecModelPath = path
+    }
 
+    guard let model = cachedEmotion2Vec else {
+      result(FlutterError(code: "Emotion2Vec", message: "Could not instantiate model", details: nil))
+      return
+    }
+
+    let emotion = model.getEmotion(audioData: fileFloats)
+    result(emotion)
+  }
   public func doMagika(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     let path = (call.arguments as! [Any])[0] as! String
     let fileFloats = (call.arguments as! [Any])[1] as! [Float]

@@ -63,4 +63,14 @@ class Fonnx {
       audioData: audioData,
     );
   }
+
+  Future<Float32List?> emotion2vec({
+    required String modelPath,
+    required List<int> audioBytes,
+  }) {
+    return FonnxPlatform.instance.emotion2vec(
+      modelPath: modelPath,
+      audioBytes: audioBytes,
+    );
+  }
 }
