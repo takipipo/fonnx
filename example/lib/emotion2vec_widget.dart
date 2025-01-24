@@ -23,8 +23,8 @@ class _Emotion2VecWidgetState extends State<Emotion2VecWidget> {
 
     try {
       // Replace with your actual model path
-      const emotion2vecModelPath = 'assets/emotion2vec/model.onnx';
-      const classifierModelPath = 'assets/emotion2vec/classifier.onnx';
+      const emotion2vecModelPath = 'assets/models/emotion2vec/emotion2vec.onnx';
+      const classifierModelPath = 'assets/models/classifier/409241894704317319_c4254ad62fdf43d1a541acbef4e1a0c2.onnx';
       
       // Sample audio data - replace with real audio input
       final sampleAudio = List.generate(16000, (index) => index % 2 == 0 ? 1 : -1);
@@ -35,9 +35,12 @@ class _Emotion2VecWidgetState extends State<Emotion2VecWidget> {
         audioBytes: sampleAudio,
       );
 
+      // Print raw emotion vector to console
+      print('Emotion vector: $result');
+
       setState(() {
         _result = result != null 
-            ? 'Detected emotion: ${_interpretEmotion(result)}'
+            ? 'Raw emotion vector: $result'
             : 'Failed to detect emotion';
       });
     } catch (e) {
@@ -49,24 +52,6 @@ class _Emotion2VecWidgetState extends State<Emotion2VecWidget> {
         _isProcessing = false;
       });
     }
-  }
-
-  String _interpretEmotion(Float32List emotions) {
-    // Add your emotion labels here
-    const emotions = ['Happy', 'Sad', 'Angry', 'Neutral'];
-    
-    // Find the highest probability emotion
-    var maxIndex = 0;
-    var maxValue = emotions[0];
-    
-    for (var i = 1; i < emotions.length; i++) {
-      if (emotions[i] > maxValue) {
-        maxValue = emotions[i];
-        maxIndex = i;
-      }
-    }
-    
-    return emotions[maxIndex];
   }
 
   @override

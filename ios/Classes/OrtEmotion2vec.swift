@@ -48,17 +48,17 @@ class OrtEmotion2Vec {
       }
       
       // Create padding mask (all true since we're using the full sequence)
-      let paddingMask = Array(repeating: true, count: audioData.count)
+      let paddingMask = Array(repeating: UInt8(1), count: audioData.count)
       let paddingMaskNS = NSMutableData(
         bytes: paddingMask,
-        length: paddingMask.count * MemoryLayout<Bool>.size
+        length: paddingMask.count * MemoryLayout<UInt8>.size
       )
       
       let paddingMaskTensor = try ORTValue(
         tensorData: paddingMaskNS,
-        elementType: .bool,
+        elementType: .uInt8,
         shape: [NSNumber(value: 1), NSNumber(value: paddingMask.count)]
-      )
+      ) 
       
       // Run Classifier model
       let classifierOutputs = try classifierSession.run(
