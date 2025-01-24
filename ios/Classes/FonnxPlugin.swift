@@ -14,6 +14,7 @@ public class FonnxPlugin: NSObject, FlutterPlugin {
   private var cachedPyannoteModelPath: String?
   private var cachedPyannote: OrtPyannote?
   private var cachedEmotion2VecModelPath: String?
+  private var cachedClassifierModelPath: String?
   private var cachedEmotion2Vec: OrtEmotion2Vec?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
@@ -43,12 +44,14 @@ public class FonnxPlugin: NSObject, FlutterPlugin {
     }
   }
   public func doEmotion2Vec(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    let path = (call.arguments as! [Any])[0] as! String
-    let fileFloats = (call.arguments as! [Any])[1] as! [Float]
+    let emotion2vecModelPath = (call.arguments as! [Any])[0] as! String
+    let classifierModelPath = (call.arguments as! [Any])[1] as! String
+    let fileFloats = (call.arguments as! [Any])[2] as! [Float]
     
-    if cachedEmotion2VecModelPath != path {
-      cachedEmotion2Vec = OrtEmotion2Vec(modelPath: path)
-      cachedEmotion2VecModelPath = path
+    if cachedEmotion2VecModelPath != emotion2vecModelPath {
+      cachedEmotion2Vec = OrtEmotion2Vec(emotion2vecModelPath: emotion2vecModelPath, classifierModelPath: classifierModelPath)
+      cachedEmotion2VecModelPath = emotion2vecModelPath
+      cachedClassifierModelPath = classifierModelPath
     }
 
     guard let model = cachedEmotion2Vec else {

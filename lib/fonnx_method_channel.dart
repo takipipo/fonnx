@@ -98,12 +98,13 @@ class MethodChannelFonnx extends FonnxPlatform {
   }
   @override
   Future<Float32List?> emotion2vec({
-    required String modelPath,
+    required String emotion2vecModelPath,
+    required String classifierModelPath,
     required List<int> audioBytes,
   }) async {
     final result = await methodChannel.invokeMethod<Float32List>(
       'emotion2vec',
-      [modelPath, audioBytes],
+      [emotion2vecModelPath, classifierModelPath, audioBytes],
     );
     return result;
   }

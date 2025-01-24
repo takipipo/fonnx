@@ -3,19 +3,26 @@ import onnxruntime_objc
 import os
 
 class OrtEmotion2Vec {
-  var modelPath: String
-  lazy var sessionObjects: OrtSessionObjects = {
-    OrtSessionObjects(modelPath: modelPath, includeOrtExtensions: false)!
+  var emotion2vecModelPath: String
+  var classifierModelPath: String
+  lazy var emotion2vecSessionObjects: OrtSessionObjects = {
+    OrtSessionObjects(modelPath: emotion2vecModelPath, includeOrtExtensions: false)!
+  }()
+  lazy var classifierSessionObjects: OrtSessionObjects = {
+    OrtSessionObjects(modelPath: classifierModelPath, includeOrtExtensions: false)!
   }()
 
 
-  init(modelPath: String) {
-    self.modelPath = modelPath
+  init(emotion2vecModelPath: String, classifierModelPath: String) {
+    self.emotion2vecModelPath = emotion2vecModelPath
+    self.classifierModelPath = classifierModelPath
   }
 
   func getEmotion(audioData: [Float]) -> [Float]? {
     os_log("Processing audio data for emotion detection, size: %d", audioData.count)
     do {
+      let emotion2vecSession = emotion2vecSessionObjects.session
+      let classifierSession = classifierSessionObjects.session
       // Create input tensor from audio data
       let audioDataNS = NSMutableData(
         bytes: audioData,
@@ -29,7 +36,7 @@ class OrtEmotion2Vec {
       )
       
       // Run Emotion2Vec model
-      let emotion2vecOutputs = try model.session.run(
+      let emotion2vecOutputs = try emotion2vecSession.run(
         withInputs: ["input": inputTensor],
         outputNames: Set(["output"]),
         runOptions: nil
@@ -54,7 +61,7 @@ class OrtEmotion2Vec {
       )
       
       // Run Classifier model
-      let classifierOutputs = try model.session.run(
+      let classifierOutputs = try classifierSession.run(
         withInputs: [
           "input": emotion2vecOutput,
           "padding_mask": paddingMaskTensor

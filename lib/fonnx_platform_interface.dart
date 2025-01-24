@@ -66,7 +66,8 @@ abstract class FonnxPlatform extends PlatformInterface {
   }
 
   Future<Float32List?> emotion2vec({
-    required String modelPath,
+    required String emotion2vecModelPath,
+    required String classifierModelPath,
     required List<int> audioBytes,
   }) {
     throw UnimplementedError('emotion2vec() has not been implemented.');
