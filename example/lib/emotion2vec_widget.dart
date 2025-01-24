@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fonnx/fonnx.dart';
 import 'dart:typed_data';
+import 'package:path_provider/path_provider.dart'as path_provider; 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'dart:io';
+import 'package:path/path.dart' as path;
 
 class Emotion2VecWidget extends StatefulWidget {
   const Emotion2VecWidget({super.key});
@@ -22,11 +27,9 @@ class _Emotion2VecWidgetState extends State<Emotion2VecWidget> {
     });
 
     try {
-      // Replace with your actual model path
-      const emotion2vecModelPath = 'assets/models/emotion2vec/emotion2vec.onnx';
-      const classifierModelPath = 'assets/models/classifier/409241894704317319_c4254ad62fdf43d1a541acbef4e1a0c2.onnx';
+      final emotion2vecModelPath = await getEmotion2VecModelPath('emotion2vec.onnx');
+      final classifierModelPath = await getEmotion2VecModelPath('409241894704317319_c4254ad62fdf43d1a541acbef4e1a0c2.onnx');
       
-      // Sample audio data - replace with real audio input
       final sampleAudio = List.generate(16000, (index) => index % 2 == 0 ? 1 : -1);
       
       final result = await Fonnx().emotion2vec(
@@ -52,6 +55,41 @@ class _Emotion2VecWidgetState extends State<Emotion2VecWidget> {
         _isProcessing = false;
       });
     }
+  }
+
+  Future<String> getEmotion2VecModelPath(String modelFilenameWithExtension) async {
+    if (kIsWeb) {
+      return 'assets/models/emotion2vec/$modelFilenameWithExtension';
+    }
+    final assetCacheDirectory = await path_provider.getApplicationSupportDirectory();
+    final modelPath = path.join(assetCacheDirectory.path, modelFilenameWithExtension);
+
+    File file = File(modelPath);
+    bool fileExists = await file.exists();
+    final fileLength = fileExists ? await file.length() : 0;
+
+    final assetPath = 'assets/models/emotion2vec/${path.basename(modelFilenameWithExtension)}';
+    final assetByteData = await rootBundle.load(assetPath);
+    final assetLength = assetByteData.lengthInBytes;
+    final fileSameSize = fileLength == assetLength;
+
+    if (!fileExists || !fileSameSize) {
+      debugPrint('Copying emotion2vec model to $modelPath');
+      List<int> bytes = assetByteData.buffer.asUint8List(
+        assetByteData.offsetInBytes,
+        assetByteData.lengthInBytes,
+      );
+      try {
+        if (!fileExists) {
+          await file.create(recursive: true);
+        }
+        await file.writeAsBytes(bytes, flush: true);
+      } catch (e) {
+        debugPrint('Error writing bytes to $modelPath: $e');
+        rethrow;
+      }
+    }
+    return modelPath;
   }
 
   @override

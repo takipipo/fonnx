@@ -3,15 +3,32 @@ import onnxruntime_objc
 import os
 
 class OrtEmotion2Vec {
+  let logger = OSLog(subsystem: "com.fonnx.emotion2vec", category: "emotion2vec")
+  
   var emotion2vecModelPath: String
   var classifierModelPath: String
+  
   lazy var emotion2vecSessionObjects: OrtSessionObjects = {
-    OrtSessionObjects(modelPath: emotion2vecModelPath, includeOrtExtensions: false)!
+    os_log(.debug, log: logger, "Initializing emotion2vec model at path: %{public}s", emotion2vecModelPath)
+    guard FileManager.default.fileExists(atPath: emotion2vecModelPath) else {
+      os_log(.error, log: logger, "Emotion2vec model file not found at path: %{public}s", emotion2vecModelPath)
+      fatalError("Emotion2vec model file not found at path: \(emotion2vecModelPath)")
+    }
+    let session = OrtSessionObjects(modelPath: emotion2vecModelPath, includeOrtExtensions: false)!
+    os_log(.debug, log: logger, "Successfully initialized emotion2vec session")
+    return session
   }()
+  
   lazy var classifierSessionObjects: OrtSessionObjects = {
-    OrtSessionObjects(modelPath: classifierModelPath, includeOrtExtensions: false)!
+    os_log(.debug, log: logger, "Initializing classifier model at path: %{public}s", classifierModelPath)
+    guard FileManager.default.fileExists(atPath: classifierModelPath) else {
+      os_log(.error, log: logger, "Classifier model file not found at path: %{public}s", classifierModelPath)
+      fatalError("Classifier model file not found at path: \(classifierModelPath)")
+    }
+    let session = OrtSessionObjects(modelPath: classifierModelPath, includeOrtExtensions: false)!
+    os_log(.debug, log: logger, "Successfully initialized classifier session")
+    return session
   }()
-
 
   init(emotion2vecModelPath: String, classifierModelPath: String) {
     self.emotion2vecModelPath = emotion2vecModelPath
@@ -20,9 +37,11 @@ class OrtEmotion2Vec {
 
   func getEmotion(audioData: [Float]) -> [Float]? {
     os_log("Processing audio data for emotion detection, size: %d", audioData.count)
+    
+    let emotion2vecSession = emotion2vecSessionObjects.session
+    let classifierSession = classifierSessionObjects.session
+    
     do {
-      let emotion2vecSession = emotion2vecSessionObjects.session
-      let classifierSession = classifierSessionObjects.session
       // Create input tensor from audio data
       let audioDataNS = NSMutableData(
         bytes: audioData,
