@@ -53,6 +53,10 @@ class OrtEmotion2Vec {
         elementType: .float,
         shape: [NSNumber(value: 1), NSNumber(value: audioData.count)]
       )
+        // Print input tensor shape
+        let tensorInfo = try inputTensor.tensorTypeAndShapeInfo()
+        let inputShape = tensorInfo.shape
+        os_log("Audio input tensor shape: %{public}@", inputShape.description)
       
       // Run Emotion2Vec model
       let emotion2vecOutputs = try emotion2vecSession.run(
@@ -65,9 +69,14 @@ class OrtEmotion2Vec {
         os_log("Failed to get emotion2vec output")
         return nil
       }
+      // Print emotion2vec output shape
+      let outputShapeInfo = try emotion2vecOutput.tensorTypeAndShapeInfo()
+      let outputShape = outputShapeInfo.shape
+      let paddingMaskLength = outputShape[1].intValue
+      os_log("Emotion2vec output tensor shape: %{public}@", outputShape.description)
       
       // Create padding mask (all true since we're using the full sequence)
-      let paddingMask = Array(repeating: UInt8(1), count: audioData.count)
+      let paddingMask = Array(repeating: UInt8(1), count: paddingMaskLength)
       let paddingMaskNS = NSMutableData(
         bytes: paddingMask,
         length: paddingMask.count * MemoryLayout<UInt8>.size
@@ -88,6 +97,7 @@ class OrtEmotion2Vec {
         outputNames: Set(["output"]),
         runOptions: nil
       )
+      os_log("Classifier outputs: %{public}@", classifierOutputs)
       
       guard let outputTensor = classifierOutputs["output"],
             let outputData = try? outputTensor.tensorData() as Data else {
