@@ -58,6 +58,7 @@ class OrtEmotion2Vec {
         let inputShape = tensorInfo.shape
         os_log("Audio input tensor shape: %{public}@", inputShape.description)
       
+      let startTime = CACurrentMediaTime()
       // Run Emotion2Vec model
       let emotion2vecOutputs = try emotion2vecSession.run(
         withInputs: ["input": inputTensor],
@@ -97,8 +98,9 @@ class OrtEmotion2Vec {
         outputNames: Set(["output"]),
         runOptions: nil
       )
+      let endTime = CACurrentMediaTime()
       os_log("Classifier outputs: %{public}@", classifierOutputs)
-      
+      os_log("Inference latency: %.2f ms", endTime - startTime)
       guard let outputTensor = classifierOutputs["output"],
             let outputData = try? outputTensor.tensorData() as Data else {
         os_log("Failed to get classifier output")
