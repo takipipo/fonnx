@@ -55,5 +55,5 @@ flutter:
     - assets/audio_sample_16khz.wav
     - assets/audio_sample_ac1_ar16000.pcm
     - assets/silence_16khz.wav
-    - assets/models/emotion2vec/emotion2vec.onnx
+    - assets/models/emotion2vec/quantized_emotion2vec_int8.onnx
     - assets/models/emotion2vec/classifier.onnx

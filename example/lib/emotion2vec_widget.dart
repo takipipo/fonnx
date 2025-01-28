@@ -27,7 +27,7 @@ class _Emotion2VecWidgetState extends State<Emotion2VecWidget> {
     });
 
     try {
-      final emotion2vecModelPath = await getEmotion2VecModelPath('emotion2vec.onnx');
+      final emotion2vecModelPath = await getEmotion2VecModelPath('quantized_emotion2vec_int8.onnx');
       final classifierModelPath = await getEmotion2VecModelPath('classifier.onnx');
       
       final sampleAudio = List.generate(16000 * 5, (index) => index % 2 == 0 ? 1 : -1);
